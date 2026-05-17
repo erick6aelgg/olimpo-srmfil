@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Parque
-from .serializers import ParqueSerializer
+from .serializers import ParqueSerializer, ParqueDetailSerializer
+from services.models import Servicio
 
 class ParqueCreateView(APIView):
 
@@ -39,7 +40,7 @@ class ParqueListView(APIView):
         else:
             parques = Parque.objects.filter(estatus_parque='activo')
 
-        serializer = ParqueSerializer(parques, many=True)
+        serializer = ParqueDetailSerializer(parques, many=True)
 
         return Response(serializer.data)
     
@@ -62,7 +63,7 @@ class ParqueDetailView(APIView):
             if not (user.is_authenticated and user.tipo_usuario == 'admin'):
                 return Response({"error": "Parque no existe"}, status=403)
 
-        serializer = ParqueSerializer(parque)
+        serializer = ParqueDetailSerializer(parque)
 
         return Response(serializer.data)
     
@@ -126,3 +127,56 @@ class ParqueDeleteView(APIView):
         parque.delete()
 
         return Response({"message": "Parque eliminado correctamente"}, status=200)
+    
+
+class AddServicioToParqueView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, id):
+
+        if request.user.tipo_usuario != 'admin':
+            return Response({"error": "No autorizado"}, status=403)
+
+        servicio_id = request.data.get('servicio_id')
+
+        if not servicio_id:
+            return Response({"error": "servicio_id es requerido"}, status=400)
+
+        try:
+            parque = Parque.objects.get(id=id)
+        except Parque.DoesNotExist:
+            return Response({"error": "Parque no existe"}, status=404)
+
+        try:
+            servicio = Servicio.objects.get(id=servicio_id)
+        except Servicio.DoesNotExist:
+            return Response({"error": "Servicio no existe"}, status=404)
+
+        servicio.parques.add(parque)
+
+        return Response({"message": "Servicio agregado al parque"})
+    
+
+class RemoveServicioFromParqueView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, id, service_id):
+
+        if request.user.tipo_usuario != 'admin':
+            return Response({"error": "No autorizado"}, status=403)
+
+        try:
+            parque = Parque.objects.get(id=id)
+        except Parque.DoesNotExist:
+            return Response({"error": "Parque no existe"}, status=404)
+
+        try:
+            servicio = Servicio.objects.get(id=service_id)
+        except Servicio.DoesNotExist:
+            return Response({"error": "Servicio no existe"}, status=404)
+
+        servicio.parques.remove(parque)
+
+        return Response({"message": "Servicio eliminado del parque"})
