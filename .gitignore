@@ -8,7 +8,9 @@ db.sqlite3
 
 # Entornos
 .env
+.env.*
 .venv
+.venv.*
 env/
 venv/
 
