@@ -9,7 +9,11 @@ from .models import Usuario
 from .serializers import RegisterSerializer, LoginSerializer, UsuarioSerializer
 
 class RegisterView(APIView):
+    """
+    POST /users/register
 
+    Registra un nuevo usuario en el sistema.
+    """
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
 
@@ -21,7 +25,11 @@ class RegisterView(APIView):
     
 
 class LoginView(APIView):
+    """
+    POST /users/login
 
+    Autentica un usuario y retorna tokens JWT (access y refresh).
+    """
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
 
@@ -49,6 +57,12 @@ class LoginView(APIView):
     
 
 class MeView(APIView):
+    """
+    GET /users/me
+
+    Retorna la información del usuario autenticado.
+    Requiere token JWT válido.
+    """
 
     permission_classes = [IsAuthenticated]
     def get(self, request):

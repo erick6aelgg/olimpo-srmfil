@@ -8,6 +8,12 @@ from .models import Servicio
 from .serializers import ServicioSerializer
 
 class ServicioCreateView(APIView):
+    """
+    POST /services/create
+
+    Crea un nuevo servicio.
+    Solo admin puede realizar esta acción.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -26,6 +32,11 @@ class ServicioCreateView(APIView):
     
 
 class ServicioListView(APIView):
+    """
+    GET /services
+
+    Lista todos los servicios disponibles.
+    """
 
     permission_classes = [AllowAny]
     authentication_classes = [JWTAuthentication]
@@ -38,6 +49,12 @@ class ServicioListView(APIView):
 
 
 class ServicioUpdateView(APIView):
+    """
+    PATCH /services/{id}/update
+
+    Actualiza un servicio existente.
+    Solo admin puede modificarlo.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -61,6 +78,12 @@ class ServicioUpdateView(APIView):
     
 
 class ServicioDeleteView(APIView):
+    """
+    DELETE /services/{id}/delete
+
+    Elimina un servicio del sistema.
+    También elimina automáticamente sus relaciones con parques.
+    """
 
     permission_classes = [IsAuthenticated]
 

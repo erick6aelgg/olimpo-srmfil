@@ -9,6 +9,12 @@ from .serializers import ParqueSerializer, ParqueDetailSerializer
 from services.models import Servicio
 
 class ParqueCreateView(APIView):
+    """
+    POST /parks/create
+
+    Crea un nuevo parque.
+    Solo usuarios con rol admin pueden realizar esta acción.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -27,6 +33,13 @@ class ParqueCreateView(APIView):
     
 
 class ParqueListView(APIView):
+    """
+    GET /parks
+
+    Lista los parques disponibles.
+    - Usuarios normales: solo parques activos.
+    - Admin: todos los parques.
+    """
 
     permission_classes = [AllowAny]  
     authentication_classes = [JWTAuthentication]  
@@ -46,6 +59,12 @@ class ParqueListView(APIView):
     
 
 class ParqueDetailView(APIView):
+    """
+    GET /parks/{id}
+
+    Obtiene el detalle de un parque específico.
+    - Si está inactivo, solo admin puede verlo.
+    """
 
     permission_classes = [AllowAny]
     authentication_classes = [JWTAuthentication]
@@ -69,6 +88,12 @@ class ParqueDetailView(APIView):
     
 
 class ParqueUpdateView(APIView):
+    """
+    PUT/PATCH /parks/{id}/update
+
+    Actualiza la información de un parque.
+    Solo admin puede modificar datos.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -111,6 +136,12 @@ class ParqueUpdateView(APIView):
     
     
 class ParqueDeleteView(APIView):
+    """
+    DELETE /parks/{id}/delete
+
+    Elimina un parque del sistema.
+    Solo admin puede realizar esta acción.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -130,6 +161,12 @@ class ParqueDeleteView(APIView):
     
 
 class AddServicioToParqueView(APIView):
+    """
+    POST /parks/{id}/services
+
+    Asocia un servicio a un parque.
+    Solo admin puede realizar esta acción.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -159,6 +196,12 @@ class AddServicioToParqueView(APIView):
     
 
 class RemoveServicioFromParqueView(APIView):
+    """
+    DELETE /parks/{id}/services/{service_id}
+
+    Elimina la relación entre un parque y un servicio.
+    Solo admin puede realizar esta acción.
+    """
 
     permission_classes = [IsAuthenticated]
 
