@@ -65,9 +65,10 @@ const fmt = (t) => {
 }
 
 const today = () => new Date().toISOString().split('T')[0]
-const isTuesday = (dateStr) => new Date(dateStr).getDay() === 2
+const isTuesday = (dateStr) => new Date(dateStr + 'T12:00:00').getDay() === 2
+
 const isInSeason = (dateStr) => {
-  const d = new Date(dateStr)
+  const d = new Date(dateStr + 'T12:00:00')  
   const m = d.getMonth() + 1
   return m >= 6 && m <= 8
 }
