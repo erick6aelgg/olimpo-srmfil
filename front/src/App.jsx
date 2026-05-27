@@ -1,31 +1,46 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Dashboard from './pages/Dashboard'
-import Parques from './pages/Parques'
-import MisReservaciones from './pages/MisReservaciones'
+import './App.css'
 
+import {
+  HashRouter,
+  Route,
+  Routes,
+  Navigate
+} from "react-router-dom";
+
+import { useAuth } from "./context/AuthContext";
+
+import { Layout } from './components/Layout';
+import Login from "./pages/Login";
+import Register from './pages/Register';
+import Parques from './pages/Parques';
+import {Home} from './components/Home';
+import MisReservaciones from './pages/MisReservaciones';
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
+
   if (loading) return null
+
   return user ? children : <Navigate to="/login" replace />
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+    <HashRouter>
+      <Routes>
+
+        <Route element={<Layout />}>
+          <Route path='/' element={<Home />} />
+          <Route path="/parques" element={<Parques />} />
+          <Route path='/reservar' element={<MisReservaciones />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/parques" element={<PrivateRoute><Parques /></PrivateRoute>} />
-          <Route path="/mis-reservaciones" element={<PrivateRoute><MisReservaciones /></PrivateRoute>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+          <Route path="/registrarse" element={<Register />} />
+        </Route>
+ 
+        
+
+
+      </Routes>
+    </HashRouter>
   )
 }
 
