@@ -14,7 +14,8 @@ class CrearReservacionView(APIView):
     """
     POST /reservations
 
-    Crea una nueva reservación. Solo usuarios autenticados.
+    Crea una nueva reservación y envía un correo de confirmación.
+    Solo usuarios autenticados.
     """
 
     permission_classes = [IsAuthenticated]
@@ -26,6 +27,7 @@ class CrearReservacionView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         reservacion = serializer.save()
+        enviar_confirmacion_reservacion(reservacion) 
         return Response(
             ReservacionSerializer(reservacion).data,
             status=status.HTTP_201_CREATED,
@@ -84,6 +86,7 @@ class CancelarReservacionView(APIView):
     PATCH /reservations/{id}/cancel
 
     Cancela una reservación cambiando su estado a 'cancelada'.
+    Notifica al usuario por correo sobre la cancelación.
     Solo se puede cancelar una reservación que esté activa.
     """
 
@@ -100,4 +103,5 @@ class CancelarReservacionView(APIView):
 
         reservacion.estado = "cancelada"
         reservacion.save()
+        enviar_notificacion_cancelacion(reservacion)
         return Response(ReservacionSerializer(reservacion).data, status=status.HTTP_200_OK)
