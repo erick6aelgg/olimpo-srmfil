@@ -5,3 +5,4 @@ djangorestframework==3.17.1
 djangorestframework-simplejwt==5.5.1
 PyJWT==2.12.1
 sqlparse==0.5.5
+imagekitio==3.2.0
