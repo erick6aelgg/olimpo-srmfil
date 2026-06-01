@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'rest_framework',
     'users',
     'parks',
@@ -85,7 +86,7 @@ WSGI_APPLICATION = 'srmfil.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db(default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'))
+    'default': env.db('DATABASE_URL')
 }   
 
 # Password validation
