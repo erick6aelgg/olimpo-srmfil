@@ -1,5 +1,6 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.core import mail
 from rest_framework.test import APIClient
 from rest_framework import status
 from datetime import date, timedelta

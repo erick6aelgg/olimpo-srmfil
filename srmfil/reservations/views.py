@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 
 from .models import Reservacion
 from .serializer import ReservacionSerializer, CrearReservacionSerializer
+from .emails import enviar_confirmacion_reservacion, enviar_notificacion_cancelacion
 from users.models import Usuario
 from parks.models import Parque
 
