@@ -137,6 +137,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
+    "SIGNING_KEY": env('JWT_SIGNING_KEY'),
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=env.int('ACCESS_TOKEN_LIFETIME_HOURS', default=7)),
 }
 
