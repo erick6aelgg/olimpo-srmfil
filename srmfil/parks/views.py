@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from .models import Parque, ImagenParque
 from .serializers import ParqueSerializer, ParqueDetailSerializer, ImagenParqueReadSerializer, ImagenParqueUploadSerializer
 from services.models import Servicio
+from .serviciosNube import upload_imagen_parque
 
 class ParqueCreateView(APIView):
     """
