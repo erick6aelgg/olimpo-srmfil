@@ -14,5 +14,7 @@ db.sqlite3
 env/
 venv/
 
+frontend/node_modules/
+
 # Mac
 .DS_Store

@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
+    'corsheaders',
     'rest_framework',
     'users',
     'parks',
@@ -52,9 +54,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware', 
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -85,7 +88,7 @@ WSGI_APPLICATION = 'srmfil.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db(default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'))
+    'default': env.db('DATABASE_URL')
 }   
 
 # Password validation
@@ -134,7 +137,20 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
+    "SIGNING_KEY": env('JWT_SIGNING_KEY'),
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=env.int('ACCESS_TOKEN_LIFETIME_HOURS', default=7)),
 }
 
 AUTH_USER_MODEL = 'users.Usuario'
+
+# Servicio de correos
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])

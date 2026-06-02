@@ -5,10 +5,16 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Parque
-from .serializers import ParqueSerializer, ParqueDetailSerializer
+from .serializers import ParqueSerializer, ParqueDetailSerializer, ImagenParqueSerializer
 from services.models import Servicio
 
 class ParqueCreateView(APIView):
+    """
+    POST /parks/create
+
+    Crea un nuevo parque.
+    Solo usuarios con rol admin pueden realizar esta acción.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -27,6 +33,13 @@ class ParqueCreateView(APIView):
     
 
 class ParqueListView(APIView):
+    """
+    GET /parks
+
+    Lista los parques disponibles.
+    - Usuarios normales: solo parques activos.
+    - Admin: todos los parques.
+    """
 
     permission_classes = [AllowAny]  
     authentication_classes = [JWTAuthentication]  
@@ -36,9 +49,9 @@ class ParqueListView(APIView):
         user = request.user
 
         if user.is_authenticated and user.tipo_usuario == 'admin':
-            parques = Parque.objects.all()
+            parques = Parque.objects.all().prefetch_related('servicios', 'imagenes')
         else:
-            parques = Parque.objects.filter(estatus_parque='activo')
+            parques = Parque.objects.filter(estatus_parque='activo').prefetch_related('servicios', 'imagenes')
 
         serializer = ParqueDetailSerializer(parques, many=True)
 
@@ -46,6 +59,12 @@ class ParqueListView(APIView):
     
 
 class ParqueDetailView(APIView):
+    """
+    GET /parks/{id}
+
+    Obtiene el detalle de un parque específico.
+    - Si está inactivo, solo admin puede verlo.
+    """
 
     permission_classes = [AllowAny]
     authentication_classes = [JWTAuthentication]
@@ -53,7 +72,7 @@ class ParqueDetailView(APIView):
     def get(self, request, id):
 
         try:
-            parque = Parque.objects.get(id=id)
+            parque = Parque.objects.prefetch_related('servicios', 'imagenes').get(id=id)
         except Parque.DoesNotExist:
             return Response({"error": "Parque no existe"}, status=404)
 
@@ -69,6 +88,12 @@ class ParqueDetailView(APIView):
     
 
 class ParqueUpdateView(APIView):
+    """
+    PUT/PATCH /parks/{id}/update
+
+    Actualiza la información de un parque.
+    Solo admin puede modificar datos.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -111,6 +136,12 @@ class ParqueUpdateView(APIView):
     
     
 class ParqueDeleteView(APIView):
+    """
+    DELETE /parks/{id}/delete
+
+    Elimina un parque del sistema.
+    Solo admin puede realizar esta acción.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -130,6 +161,12 @@ class ParqueDeleteView(APIView):
     
 
 class AddServicioToParqueView(APIView):
+    """
+    POST /parks/{id}/services
+
+    Asocia un servicio a un parque.
+    Solo admin puede realizar esta acción.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -159,6 +196,12 @@ class AddServicioToParqueView(APIView):
     
 
 class RemoveServicioFromParqueView(APIView):
+    """
+    DELETE /parks/{id}/services/{service_id}
+
+    Elimina la relación entre un parque y un servicio.
+    Solo admin puede realizar esta acción.
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -180,3 +223,35 @@ class RemoveServicioFromParqueView(APIView):
         servicio.parques.remove(parque)
 
         return Response({"message": "Servicio eliminado del parque"})
+    
+
+class ImagenParqueCreateView(APIView):
+    """
+    POST /parks/{id}/images
+
+    Crea una imagen asociada a un parque.
+    Solo admin puede hacerlo.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, id):
+
+        if request.user.tipo_usuario != 'admin':
+            return Response({"error": "No autorizado"}, status=403)
+
+        try:
+            parque = Parque.objects.get(id=id)
+        except Parque.DoesNotExist:
+            return Response({"error": "Parque no existe"}, status=404)
+
+        data = request.data.copy()
+        data['parque'] = parque.id
+
+        serializer = ImagenParqueSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+
+        return Response(serializer.errors, status=400)

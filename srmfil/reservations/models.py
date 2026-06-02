@@ -26,3 +26,7 @@ class Reservacion(models.Model):
 
     def __str__(self):
         return f"Reserva {self.id} - {self.usuario.email}"
+    
+    class Meta:
+        verbose_name = "Reservación"
+        verbose_name_plural = "Reservaciones"
