@@ -139,7 +139,7 @@ export default function Parques() {
     if (parque && form.num_personas > parque.capacidad_maxima)
       return `Capacidad máxima de este parque: ${parque.capacidad_maxima} personas.`
     const parqueSeleccionado = parques.find(p => String(p.id) === String(form.parque_id))
-    if (form.tipo_visita === 'cabana' && parqueSesleccionado && !parqueSeleccionado.tiene_cabanas)
+    if (form.tipo_visita === 'cabana' && parqueSeleccionado && !parqueSeleccionado.tiene_cabanas)
       return 'Este parque no tiene cabañas disponibles.'
     return null
   }
