@@ -1,6 +1,7 @@
 import './App.css'
 import { HashRouter, Route, Routes, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import ScrollToTop from './components/ScrollTop';
 
 // Componentes estructurales (Wrappers)
 import { Layout } from './components/Layout';
@@ -76,6 +77,7 @@ function App() {
         Ideal para despliegues estáticos (como GitHub Pages) ya que evita problemas de 404 al recargar rutas.
       */}
       <HashRouter>
+        <ScrollToTop /> 
         <Routes>
 
           {/* GRUPO DE SITIO PÚBLICO: Comparte la misma estructura visual (Navbar, Footer) a través de <Layout /> */}
@@ -116,11 +118,7 @@ function App() {
             {/* Rutas de autenticación libres (sin layouts o guards complejos) */}
             <Route path="/login" element={<Login />} />
             <Route path="/registrarse" element={<Register />} />
-
-          </Route>
-
-          {/* SECCIÓN ADMINISTRATIVA: Renderizado independiente sin el Layout común del cliente */}
-          <Route
+                      <Route
             path="/admin"
             element={
               <AdminRoute>
@@ -128,6 +126,11 @@ function App() {
               </AdminRoute>
             }
           />
+
+          </Route>
+
+          {/* SECCIÓN ADMINISTRATIVA: Renderizado independiente sin el Layout común del cliente */}
+
 
           {/* CATCH-ALL: Comportamiento ante URLs rotas o inexistentes, redirige siempre al Home seguro */}
           <Route
