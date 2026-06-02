@@ -35,6 +35,15 @@ class ImagenParqueReadSerializer(serializers.ModelSerializer):
         model = ImagenParque
         fields = ['id', 'url', 'es_principal']
 
+class ImagenParqueUploadSerializer(serializers.Serializer):
+
+    """
+    Serializer para validar los datos de una imágen
+    """
+    
+    imagen = serializers.ImageField()
+    es_principal = serializers.BooleanField(default=False)
+
 
 class ParqueDetailSerializer(serializers.ModelSerializer):
     """
