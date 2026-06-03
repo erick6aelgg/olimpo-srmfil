@@ -260,10 +260,10 @@ export default function AdminDashboard() {
     setServicioFormSaving(true)
     try {
       if (editingServicioId) {
-        await api.patch(`/api/services/${editingServicioId}/`, servicioForm)
+        await api.patch(`/api/services/${editingServicioId}/update/`, servicioForm)
         showToast('Servicio actualizado correctamente.')
       } else {
-        await api.post('/api/services/', servicioForm)
+        await api.post('/api/services/create/', servicioForm)
         showToast('Servicio creado correctamente.')
       }
       setServicioFormOpen(false)
@@ -278,7 +278,7 @@ export default function AdminDashboard() {
   const handleDeleteServicio = async () => {
     setDeletingServicio(true)
     try {
-      await api.delete(`/api/services/${deleteServicioTarget.id}/`)
+      await api.delete(`/api/services/${deleteServicioTarget.id}/delete/`)
       showToast('Servicio eliminado.')
       setDeleteServicioTarget(null)
       fetchServicios()
@@ -288,20 +288,24 @@ export default function AdminDashboard() {
 
   // ── Asignacion de servicios a parques ──
   const toggleServicioEnParque = async (parque, servicioId) => {
-    const ids = (parque.servicios || []).map(s => s.id)
-    const yaAsignado = ids.includes(servicioId)
-    const nuevosIds = yaAsignado
-      ? ids.filter(id => id !== servicioId)
-      : [...ids, servicioId]
-
-    setAsignacionSaving(true)
-    try {
-      await api.patch(`/api/parks/${parque.id}/update/`, { servicios: nuevosIds })
-      showToast(yaAsignado ? 'Servicio removido del parque.' : 'Servicio asignado al parque.')
-      fetchParques()
-    } catch { showToast('Error al actualizar servicios del parque.', 'error') }
-    finally { setAsignacionSaving(false) }
+  const yaAsignado = (parque.servicios || []).some(s => s.id === servicioId)
+  
+  setAsignacionSaving(true)
+  try {
+    if (yaAsignado) {
+      await api.delete(`/api/parks/${parque.id}/services/${servicioId}/`)
+      showToast('Servicio removido del parque.')
+    } else {
+      await api.post(`/api/parks/${parque.id}/services/`, { servicio_id: servicioId })
+      showToast('Servicio asignado al parque.')
+    }
+    fetchParques()
+  } catch {
+    showToast('Error al actualizar servicios del parque.', 'error')
+  } finally {
+    setAsignacionSaving(false)
   }
+}
 
   const initials = user
     ? `${user.first_name?.[0] || ''}${(user.apellido_p || user.last_name)?.[0] || ''}`.toUpperCase() || 'A'
