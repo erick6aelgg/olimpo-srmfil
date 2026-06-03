@@ -62,7 +62,7 @@ export const Footer = () => {
               <a href="#" className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center hover:bg-yellow-500/20 transition-colors">
                 <FaTwitter className="w-5 h-5 text-yellow-500" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center hover:bg-yellow-500/20 transition-colors">
+              <a href="mailto:srmfilbyolimpo@gmail.com" className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center hover:bg-yellow-500/20 transition-colors">
                 <MdMail className="w-5 h-5 text-yellow-500" />
               </a>
             </div>
@@ -90,7 +90,7 @@ export const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-500 hover:text-yellow-500 text-sm transition-colors">
+                <a href="mailto:srmfilbyolimpo@gmail.com" className="text-gray-500 hover:text-yellow-500 text-sm transition-colors">
                   Contacto
                 </a>
               </li>
