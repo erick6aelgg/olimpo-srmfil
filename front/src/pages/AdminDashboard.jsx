@@ -193,7 +193,7 @@ export default function AdminDashboard() {
         formData.append('imagen', imageFile)
         formData.append('es_principal', 'true')
         try {
-          await api.post(`/api/parks/${parqueId}/images/`, formData, {
+          await api.post(`/api/parks/${parqueId}/images/add/`, formData, {
             headers: { 'Content-Type': undefined },
           })
         } catch (err) {

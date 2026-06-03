@@ -65,18 +65,18 @@ const parkImages = {
 const fallback =
   'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
 /* ─── carrusel ──────────────────────────────────────────────── */
-function ImageCarousel({ parkId, alt }) {
-  const images = parkImages[parkId] ?? [fallback]
+function ImageCarousel({ images = [], alt }) {
+  const urls = images.length > 0 ? images.map(i => i.url) : [fallback]
   const [idx, setIdx] = useState(0)
-  const prev = (e) => { e.stopPropagation(); setIdx((i) => (i - 1 + images.length) % images.length) }
-  const next = (e) => { e.stopPropagation(); setIdx((i) => (i + 1) % images.length) }
+  const prev = (e) => { e.stopPropagation(); setIdx((i) => (i - 1 + urls.length) % urls.length) }
+  const next = (e) => { e.stopPropagation(); setIdx((i) => (i + 1) % urls.length) }
 
   return (
     <div className="relative h-56 overflow-hidden rounded-t-2xl group">
       <AnimatePresence mode="wait">
         <motion.img
           key={idx}
-          src={images[idx]}
+          src={urls[idx]}
           alt={alt}
           onError={(e) => { e.target.src = fallback }}
           initial={{ opacity: 0, scale: 1.04 }}
@@ -108,7 +108,7 @@ function ImageCarousel({ parkId, alt }) {
 
           {/* dots */}
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {images.map((_, i) => (
+            {urls.map((_, i) => (
               <button
                 key={i}
                 onClick={(e) => { e.stopPropagation(); setIdx(i) }}
@@ -442,7 +442,7 @@ export const Home = () => {
           >
             {/* carrusel */}
             <div className="relative">
-              <ImageCarousel parkId={p.id} alt={p.nombre} />
+              <ImageCarousel images={p.imagenes} alt={p.nombre} />
 
               {/* rating badge */}
               <div className="absolute top-3 left-3 bg-[#0a0e0d]/80 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 z-10">
