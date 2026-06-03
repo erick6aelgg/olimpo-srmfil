@@ -561,10 +561,7 @@ export default function Parques() {
                   <div className={`overflow-hidden rounded-2xl border bg-gradient-to-b from-[#183425] to-[#0b1510] flex flex-col transition-all duration-300 h-full ${selected?.id === p.id ? 'border-yellow-300 shadow-[0_0_30px_rgba(250,204,21,0.18)]' : 'border-yellow-400/20 hover:border-yellow-300'}`}>
                     <div className="relative">
                       <ImageCarousel images={p.imagenes} alt={p.nombre} />
-                      <div className="absolute top-3 left-3 bg-[#0a0e0d]/80 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 z-10">
-                        <Star className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300" />
-                        <span className="text-white text-xs font-medium">{p.rating ?? '4.8'}</span>
-                      </div>
+                      
                       <div className="absolute top-3 right-3 z-10">
                         <span className="px-2.5 py-1 rounded-full bg-black/60 border border-yellow-400/20 text-yellow-300 text-xs">
                           {p.tiene_cabanas ? 'Cabañas + Camping' : 'Camping'}
@@ -605,12 +602,8 @@ export default function Parques() {
                         </div>
                       )}
 
-                      <div className="mt-auto pt-3 border-t border-yellow-400/10 flex items-center justify-between">
-                        <div className="flex items-center gap-0.5">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-3 h-3 ${i < Math.round(p.rating ?? 4.8) ? 'text-yellow-300 fill-yellow-300' : 'text-zinc-700'}`} />
-                          ))}
-                        </div>
+                      <div className="mt-auto pt-3 border-t border-yellow-400/10 flex items-center justify-end">
+                        
                         <Button size="sm" onClick={() => selectPark(p)} className="btn-fancy text-black cursor-pointer">
                           Ver más detalles <FiArrowRight className="h-5 w-5" />
                         </Button>

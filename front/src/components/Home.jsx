@@ -222,7 +222,7 @@ export const Home = () => {
   }
 
     const activeParques = parques.filter((p) => 
-      p.estatus_parque === 'activo').slice(3,6)
+      p.estatus_parque === 'activo').slice(0,3)
 
   /* slideshow */
   const [slideIdx, setSlideIdx] = useState(0);
@@ -249,8 +249,7 @@ export const Home = () => {
       {/* ═══════════════════════════════════════════
           HERO — slideshow + luciérnagas + overlays
           ═══════════════════════════════════════════ */}
-      <section className="relative min-h-dvh flex items-center justify-center overflow-hidden">
-
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden py-24">
         {/* Slideshow de fondo */}
         <AnimatePresence mode="sync">
           <motion.div
@@ -444,14 +443,6 @@ export const Home = () => {
             <div className="relative">
               <ImageCarousel images={p.imagenes} alt={p.nombre} />
 
-              {/* rating badge */}
-              <div className="absolute top-3 left-3 bg-[#0a0e0d]/80 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 z-10">
-                <Star className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300" />
-                <span className="text-white text-xs font-medium">
-                  {p.rating ?? '4.8'}
-                </span>
-              </div>
-
               {/* tipo badge */}
               <div className="absolute top-3 right-3 z-10">
                 <span className="px-2.5 py-1 rounded-full bg-black/60 border border-yellow-400/20 text-yellow-300 text-xs">
@@ -512,20 +503,7 @@ export const Home = () => {
               </div>
 
               {/* divider + botón */}
-              <div className="mt-auto pt-3 border-t border-yellow-400/10 flex items-center justify-between">
-                <div className="flex items-center gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-3 h-3 ${
-                        i < Math.round(p.rating ?? 4.8)
-                          ? 'text-yellow-300 fill-yellow-300'
-                          : 'text-zinc-700'
-                      }`}
-                    />
-                  ))}
-                </div>
-
+              <div className="mt-auto pt-3 border-t border-yellow-400/10 flex items-center justify-end">
                 <Button
                   size="sm"
                   onClick={() => navigate("/parques")}
