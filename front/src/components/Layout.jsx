@@ -18,9 +18,7 @@ export const Layout = () => {
    * Retorna directamente el <Outlet />, permitiendo que la vista administrativa se despliegue 
    * en pantalla completa limpia sin heredar el Navbar ni el Footer convencionales.
    */
-  if (user?.tipo_usuario === "admin") {
-    return <Outlet />;
-  }
+
 
   return (
     /**
@@ -33,6 +31,12 @@ export const Layout = () => {
       {/* Barra de navegación superior fija */}
       <Navbar />
 
+      {/**
+       * ÁREA DE CONTENIDO PRINCIPAL (MAIN)
+       * - flex-grow: Fuerza a esta etiqueta a expandirse y ocupar todo el espacio disponible sobrante en vertical, 
+       * empujando al <Footer /> hacia el extremo inferior del monitor incluso si la página tiene poco contenido.
+       * - pt-16: Padding superior para evitar que el contenido quede oculto detrás de la barra de navegación que es fija (fixed h-16).
+       */}
       <main className="flex-grow pt-16">
         {/**
          * <Outlet /> es el marcador de posición (placeholder) de react-router-dom.

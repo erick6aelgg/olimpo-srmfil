@@ -37,7 +37,7 @@ export const Navbar = () => {
   const menu = [
     { id: 1, name: "Inicio", href: "/" },
     { id: 2, name: "Parques", href: "/parques" },
-    { id: 3, name: "Reservar", href: "/reservar" },
+    { id: 3, name: "Mis Reservaciones", href: "/reservar" },
   ];
 
   /**
