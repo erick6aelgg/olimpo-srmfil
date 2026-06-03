@@ -16,19 +16,6 @@ import {
 } from 'lucide-react'
 import { FiArrowRight } from 'react-icons/fi'
 import { motion, AnimatePresence } from 'framer-motion'
-import Luciernagas1 from '../assets/img/parques/Luciernagas1.jpg'
-import Luciernagas2 from '../assets/img/parques/Luciernagas2.jpg'
-import img1 from '../assets/img/parques/b1.jpeg'
-import img2 from '../assets/img/parques/b2.jpg'
-import img3 from '../assets/img/parques/3.1.jpg'
-import img4 from '../assets/img/parques/3.2.jpeg'
-import img5 from '../assets/img/parques/4.1.jpeg'
-import img6 from '../assets/img/parques/4.2.jpg'
-import img7 from '../assets/img/parques/5.1.jpeg'
-import img8 from '../assets/img/parques/6.1.jpg'
-import img9 from '../assets/img/parques/6.2.jpg'
-import img10 from '../assets/img/parques/7.jpg'
-import img11 from '../assets/img/parques/8.jpg'
 
 /* ─── helpers ──────────────────────────────────────────────── */
 const fireflyIcon = (active = false) =>
@@ -73,17 +60,6 @@ const isTuesday = (d) => new Date(d + 'T12:00:00').getDay() === 2
 const isInSeason = (d) => {
   const month = new Date(d + 'T12:00:00').getMonth() + 1
   return month >= 6 && month <= 8
-}
-
-const parkImages = {
-  1: [Luciernagas1, Luciernagas2],
-  2: [img1, img2],
-  3: [img3, img4],
-  4: [img5, img6],
-  5: [img7],
-  6: [img8, img9],
-  7: [img10],
-  8: [img11],
 }
 
 const fallback =
@@ -359,7 +335,7 @@ export default function Parques() {
             <div className="relative h-72 overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.img key={selected.id}
-                  src={(parkImages[selected.id] ?? [fallback])[0]}
+                  src={selected.imagenes?.find(i => i.es_principal)?.url ?? fallback}
                   alt={selected.nombre}
                   onError={(e) => { e.target.src = fallback }}
                   initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }}

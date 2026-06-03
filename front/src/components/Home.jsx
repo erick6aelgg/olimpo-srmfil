@@ -19,19 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import api from '../services/api'
-import Luciernagas1 from '../assets/img/parques/Luciernagas1.jpg'
-import Luciernagas2 from '../assets/img/parques/Luciernagas2.jpg'
-import img1 from '../assets/img/parques/b1.jpeg'
-import img2 from '../assets/img/parques/b2.jpg'
-import img3 from '../assets/img/parques/3.1.jpg'
-import img4 from '../assets/img/parques/3.2.jpeg'
-import img5 from '../assets/img/parques/4.1.jpeg'
-import img6 from '../assets/img/parques/4.2.jpg'
-import img7 from '../assets/img/parques/5.1.jpeg'
-import img8 from '../assets/img/parques/6.1.jpg'
-import img9 from '../assets/img/parques/6.2.jpg'
-import img10 from '../assets/img/parques/7.jpg'
-import img11 from '../assets/img/parques/8.jpg'
+
 
 /* ─── Imágenes del hero (slideshow) ─────────────────────────────── */
 const heroSlides = [
@@ -49,19 +37,6 @@ const heroSlides = [
   },
 ];
 
-/* ─── Imágenes para cada parque destacado ────────────────────────── */
-// Ajusta estos arrays a las importaciones reales de tu proyecto
-/* parkImages: mapea id → array de imágenes (carrusel) */
-const parkImages = {
-  1: [Luciernagas1, Luciernagas2],
-  2: [img1, img2],
-  3: [img3, img4],
-  4: [img5, img6],
-  5: [img7],
-  6: [img8, img9],
-  7: [img10],
-  8: [img11]
-}
 const fallback =
   'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
 /* ─── carrusel ──────────────────────────────────────────────── */
