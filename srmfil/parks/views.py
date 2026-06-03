@@ -3,10 +3,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.shortcuts import get_object_or_404
 
-from .models import Parque
-from .serializers import ParqueSerializer, ParqueDetailSerializer, ImagenParqueSerializer
+from .models import Parque, ImagenParque
+from .serializers import ParqueSerializer, ParqueDetailSerializer, ImagenParqueReadSerializer, ImagenParqueUploadSerializer
 from services.models import Servicio
+from .serviciosNube import upload_imagen_parque
 
 class ParqueCreateView(APIView):
     """
@@ -223,35 +225,62 @@ class RemoveServicioFromParqueView(APIView):
         servicio.parques.remove(parque)
 
         return Response({"message": "Servicio eliminado del parque"})
-    
+     
+class ImagenParqueGetView(APIView):
+    """GET parques"""
+    permission_classes = [AllowAny]
 
-class ImagenParqueCreateView(APIView):
-    """
-    POST /parks/{id}/images
-
-    Crea una imagen asociada a un parque.
-    Solo admin puede hacerlo.
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, id):
-
-        if request.user.tipo_usuario != 'admin':
-            return Response({"error": "No autorizado"}, status=403)
-
+    def get(self, request, id):
         try:
             parque = Parque.objects.get(id=id)
         except Parque.DoesNotExist:
             return Response({"error": "Parque no existe"}, status=404)
 
-        data = request.data.copy()
-        data['parque'] = parque.id
+        imagenes = ImagenParque.objects.filter(parque=parque)
+        serializer = ImagenParqueReadSerializer(imagenes, many=True)
+        return Response(serializer.data)
+    
+class ImagenParqueCreateView(APIView):
+    """POST creación de imágen"""
+    permission_classes = [IsAuthenticated]
 
-        serializer = ImagenParqueSerializer(data=data)
+    def post(self, request, id):
+        if request.user.tipo_usuario != 'admin':
+            return Response({"error": "No autorizado"}, status=403)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
+        parque = get_object_or_404(Parque, id=id)
+        serializer = ImagenParqueUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        return Response(serializer.errors, status=400)
+        es_principal = serializer.validated_data['es_principal']
+
+        if es_principal:
+            ImagenParque.objects.filter(parque=parque, es_principal=True).update(es_principal=False)
+
+        url = upload_imagen_parque(file=request.FILES['imagen'], id=id)
+
+        #Guardar url en la BD
+        imagen = ImagenParque.objects.create(
+            parque=parque,
+            url=url,
+            es_principal=es_principal,
+        )
+
+        return Response(ImagenParqueReadSerializer(imagen).data, status=status.HTTP_201_CREATED)
+
+class RemoveImagenFromParqueView(APIView):
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, id, imagen_id):
+        if request.user.tipo_usuario != 'admin':
+            return Response({"error": "No autorizado"}, status=403)
+        try:
+            parque = Parque.objects.get(id=id)
+        except Parque.DoesNotExist:
+            return Response({"error": "Parque no existe"}, status=404)
+        try:
+            imagen = ImagenParque.objects.get(id=imagen_id, parque=parque)
+        except ImagenParque.DoesNotExist:
+            return Response({"error": "Imagen no existe"}, status=404)
+        imagen.delete()
+        return Response({"message": "Imagen eliminada correctamente"})
+    

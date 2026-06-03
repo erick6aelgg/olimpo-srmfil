@@ -22,3 +22,5 @@ sqlparse==0.5.5
 tzdata==2025.3
 wheel==0.46.3
 whitenoise==6.12.0
+imagekitio==3.2.0
+Pillow==11.2.1
