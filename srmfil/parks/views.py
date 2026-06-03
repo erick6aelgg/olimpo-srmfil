@@ -3,10 +3,22 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.conf import settings
 
-from .models import Parque
-from .serializers import ParqueSerializer, ParqueDetailSerializer, ImagenParqueSerializer
+from .models import Parque, ImagenParque
+from .serializers import (
+    ParqueSerializer,
+    ParqueDetailSerializer,
+    ImagenParqueSerializer,
+    ImagenParqueReadSerializer,
+)
 from services.models import Servicio
+from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+from imagekitio import ImageKit
+import uuid
+from django.shortcuts import get_object_or_404
+
+
 
 class ParqueCreateView(APIView):
     """
@@ -226,32 +238,46 @@ class RemoveServicioFromParqueView(APIView):
     
 
 class ImagenParqueCreateView(APIView):
-    """
-    POST /parks/{id}/images
-
-    Crea una imagen asociada a un parque.
-    Solo admin puede hacerlo.
-    """
-
+    """POST creación de imágen"""
     permission_classes = [IsAuthenticated]
 
     def post(self, request, id):
-
         if request.user.tipo_usuario != 'admin':
             return Response({"error": "No autorizado"}, status=403)
 
-        try:
-            parque = Parque.objects.get(id=id)
-        except Parque.DoesNotExist:
-            return Response({"error": "Parque no existe"}, status=404)
+        parque = get_object_or_404(Parque, id=id)
 
-        data = request.data.copy()
-        data['parque'] = parque.id
+        imagen_file = request.FILES.get('imagen')
+        if not imagen_file:
+            return Response({"error": "El archivo imagen es requerido."}, status=400)
 
-        serializer = ImagenParqueSerializer(data=data)
+        es_principal_raw = request.data.get('es_principal', 'false')
+        es_principal = es_principal_raw in [True, 'true', 'True', '1']
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
+        if es_principal:
+            ImagenParque.objects.filter(parque=parque, es_principal=True).update(es_principal=False)
 
-        return Response(serializer.errors, status=400)
+        imagekit = ImageKit(
+            private_key=settings.IMAGEKIT_PRIVATE_KEY,
+            public_key=settings.IMAGEKIT_PUBLIC_KEY,
+            url_endpoint=settings.IMAGEKIT_URL_ENDPOINT,
+        )
+        filename = f"parque_{id}_{uuid.uuid4().hex[:8]}"
+        options = UploadFileRequestOptions(
+            folder="/parques/"
+        )
+
+        result = imagekit.file.upload(
+            file=imagen_file.read(),
+            file_name=filename,
+            options=options
+        )
+        url = result.url
+
+        imagen = ImagenParque.objects.create(
+            parque=parque,
+            url=url,
+            es_principal=es_principal,
+        )
+
+        return Response(ImagenParqueReadSerializer(imagen).data, status=status.HTTP_201_CREATED)
