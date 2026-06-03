@@ -26,9 +26,7 @@ function ClientRoute({ children }) {
   // Evita parpadeos o redirecciones en falso mientras se recupera la sesión del localStorage
   if (loading) return null
 
-  if (user?.tipo_usuario === 'admin') {
-    return <Navigate to="/admin" replace />
-  }
+  
 
   return children
 }

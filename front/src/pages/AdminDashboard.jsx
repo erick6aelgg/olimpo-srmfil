@@ -68,6 +68,9 @@ export default function AdminDashboard() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+
   const [reservaciones, setReservaciones] = useState([])
   const [resLoading, setResLoading] = useState(false)
   const [resFiltro, setResFiltro] = useState('todas')
@@ -114,7 +117,15 @@ export default function AdminDashboard() {
   useEffect(() => { fetchParques() }, [])
   useEffect(() => { if (tab === 'reservaciones') fetchReservaciones() }, [tab])
 
-  const openCreate = () => { setParqueForm(emptyParque); setEditingId(null); setFormError(''); setFormOpen(true) }
+  const openCreate = () => {
+    setParqueForm(emptyParque)
+    setEditingId(null)
+    setFormError('')
+    setFormOpen(true)
+    setImageFile(null)
+    setImagePreview(null)
+  }
+
   const openEdit = (p) => {
     setParqueForm({
       nombre: p.nombre, direccion: p.direccion, latitud: p.latitud, longitud: p.longitud,
@@ -122,13 +133,25 @@ export default function AdminDashboard() {
       tiene_cabanas: p.tiene_cabanas, capacidad_maxima: p.capacidad_maxima,
       estatus_parque: p.estatus_parque,
     })
-    setEditingId(p.id); setFormError(''); setFormOpen(true)
+    setEditingId(p.id)
+    setFormError('')
+    setFormOpen(true)
+    setImageFile(null)
+    const principal = p.imagenes?.find(i => i.es_principal)
+    setImagePreview(principal ? principal.url : null)
   }
 
   const handleParqueChange = (e) => {
     const { name, value, type, checked } = e.target
     setParqueForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }))
     setFormError('')
+  }
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
   }
 
   const handleParqueSave = async (e) => {
@@ -140,13 +163,28 @@ export default function AdminDashboard() {
     setFormSaving(true)
     try {
       const payload = { ...parqueForm, capacidad_maxima: parseInt(parqueForm.capacidad_maxima) || 0 }
+      let parqueId = editingId
       if (editingId) {
         await api.patch(`/api/parks/${editingId}/update/`, payload)
         showToast('Parque actualizado correctamente.')
       } else {
-        await api.post('/api/parks/create/', payload)
+        const { data } = await api.post('/api/parks/create/', payload)
+        parqueId = data.id
         showToast('Parque creado correctamente.')
       }
+if (imageFile && parqueId) {
+  const formData = new FormData()
+  formData.append('imagen', imageFile)
+  formData.append('es_principal', 'true')
+  try {
+    await api.post(`/api/parks/${parqueId}/images/`, formData, {
+      headers: { 'Content-Type': undefined },
+    })
+  } catch (err) {
+    console.error('Error imagen:', err.response?.data)
+    showToast('Parque guardado, pero la imagen no se subió.', 'error')
+  }
+}
       setFormOpen(false)
       fetchParques()
     } catch (err) {
@@ -214,50 +252,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 h-[60px] bg-[#030c06]/95 border-b border-yellow-500/10 backdrop-blur-md flex items-center justify-between px-6">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2 text-[#c8b882] text-sm font-medium">
-            <FaTree className="text-yellow-400" />
-            Luciérnagas <em className="not-italic text-yellow-400">2026</em>
-          </Link>
-          <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/25 text-yellow-400">
-            <div className="flex items-center gap-1">
-              <MdAdminPanelSettings size={12} />
-              Admin
-            </div>
-          </span>
-        </div>
 
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="w-9 h-9 rounded-full bg-yellow-400/10 border border-yellow-400/35 text-yellow-400 text-sm font-bold flex items-center justify-center hover:bg-yellow-400/20 transition"
-          >
-            {initials}
-          </button>
-          {menuOpen && (
-            <div className="absolute top-12 right-0 w-56 bg-[#0d2418] border border-yellow-500/20 rounded-2xl p-2 shadow-2xl">
-              <div className="px-3 py-2 border-b border-yellow-500/10 mb-1">
-                <p className="text-sm font-medium text-[#e8dfc8]">{user?.first_name} {user?.apellido_p}</p>
-                <p className="text-xs text-[#b4c8b9]/50 mt-0.5">{user?.email}</p>
-                <span className="text-[10px] mt-1 inline-block px-2 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-semibold tracking-wider uppercase">
-                  Administrador
-                </span>
-              </div>
-              <button
-                onClick={() => { logout(); navigate('/login') }}
-                className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition"
-              >
-                <div className="flex items-center gap-2">
-                  <FaSignOutAlt />
-                  Cerrar sesión
-                </div>
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
 
       <div className="flex min-h-[calc(100vh-60px)]">
 
@@ -272,7 +267,7 @@ export default function AdminDashboard() {
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 mx-2 rounded-xl text-sm transition text-left
+                className={`flex items-center gap-2 px-4 py-2.5 mx-2 rounded-xl text-sm transition text-left cursor-pointer
                     ${tab === t.id
                     ? 'bg-yellow-400/10 text-yellow-400 font-medium'
                     : 'text-[#c8b882]/60 hover:bg-yellow-400/5 hover:text-[#e8dfc8]'}`}
@@ -287,13 +282,13 @@ export default function AdminDashboard() {
             )
           })}
 
-          <div className="mt-4 px-4">
-            <p className="text-[10px] font-bold tracking-widest uppercase text-[#b4c8b9]/35 mb-2">Acciones</p>
+          <div className="mt-4 px-4 ">
+            <p className="text-[10px] font-bold  tracking-widest uppercase text-[#b4c8b9]/35 mb-2">Acciones</p>
             <button
               onClick={openCreate}
-              className="flex items-center gap-2 px-4 py-2.5 w-full rounded-xl text-sm text-[#c8b882]/60 hover:bg-yellow-400/5 hover:text-[#e8dfc8] transition"
+              className="flex items-center cursor-pointer gap-2 px-4 py-2.5 w-full rounded-xl text-sm text-[#c8b882]/60 hover:bg-yellow-400/5 hover:text-[#e8dfc8] transition"
             >
-              <FaPlus />
+              <FaPlus  className='cursor-pointer'/>
               Nuevo parque
             </button>
           </div>
@@ -329,7 +324,7 @@ export default function AdminDashboard() {
                 </div>
                 <button
                   onClick={openCreate}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-yellow-400 text-[#050e08] text-sm font-bold rounded-xl hover:bg-yellow-300 transition shadow-lg shadow-yellow-400/20"
+                  className="flex items-center cursor-pointer gap-2 px-5 py-2.5 bg-yellow-400 text-[#050e08] text-sm font-bold rounded-xl hover:bg-yellow-300 transition shadow-lg shadow-yellow-400/20"
                 >
                   <FaPlus /> Nuevo parque
                 </button>
@@ -394,10 +389,10 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex gap-1.5">
-                              <button onClick={() => openEdit(p)} className="w-8 h-8 rounded-lg bg-yellow-400/10 hover:bg-yellow-400/22 transition flex items-center justify-center text-[#c8b882]" title="Editar">
+                              <button onClick={() => openEdit(p)} className="w-8 h-8 rounded-lg cursor-pointer bg-yellow-400/10 hover:bg-yellow-400/22 transition flex items-center justify-center text-[#c8b882]" title="Editar">
                                 <FaEdit size={14} />
                               </button>
-                              <button onClick={() => setDeleteTarget(p)} className="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/22 transition flex items-center justify-center text-red-400" title="Eliminar">
+                              <button onClick={() => setDeleteTarget(p)} className="w-8 h-8 cursor-pointer rounded-lg bg-red-500/10 hover:bg-red-500/22 transition flex items-center justify-center text-red-400" title="Eliminar">
                                 <FaTrash size={14} />
                               </button>
                             </div>
@@ -558,7 +553,7 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <form onSubmit={handleParqueSave} className="p-6">
+            <form onSubmit={handleParqueSave} className="p-6 overflow-y-auto max-h-[80vh]">
               <div className="grid grid-cols-2 gap-4">
 
                 <div className="col-span-2">
@@ -611,7 +606,7 @@ export default function AdminDashboard() {
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-[#b4c8b9]/55 mb-1.5">Estatus</label>
                   <select name="estatus_parque" value={parqueForm.estatus_parque} onChange={handleParqueChange}
-                    className="w-full bg-[#0d2418] border border-yellow-400/14 rounded-xl px-4 py-2.5 text-[#eee8d5] text-sm outline-none focus:border-yellow-400/55 transition">
+                    className="w-full bg-[#0d2418] border border-yellow-400/14 rounded-xl px-4 py-2.5 text-[#eee8d5] text-sm outline-none focus:border-yellow-400/55 transition cursor-pointer">
                     <option value="activo">Activo</option>
                     <option value="inactivo">Inactivo</option>
                   </select>
@@ -626,6 +621,45 @@ export default function AdminDashboard() {
                     <span className="text-sm text-[#e8dfc8]">Este parque tiene cabañas disponibles</span>
                   </label>
                 </div>
+
+                {/* Imagen principal */}
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-[#b4c8b9]/55 mb-1.5">
+                    Imagen principal
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {imagePreview ? (
+                      <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-yellow-400/20 flex-shrink-0">
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => { setImageFile(null); setImagePreview(null) }}
+                          className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-red-500/80 transition"
+                        >
+                          <FaTimes size={8} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 rounded-xl border border-dashed border-yellow-400/20 bg-white/3 flex items-center justify-center text-yellow-400/30 flex-shrink-0">
+                        <FaTree size={22} />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <label className="flex items-center gap-2 px-4 py-2.5 bg-white/4 border border-yellow-400/14 rounded-xl text-sm text-[#c8b882]/70 hover:border-yellow-400/40 hover:text-[#e8dfc8] cursor-pointer transition w-fit">
+                        <FaPlus size={12} />
+                        {imagePreview ? 'Cambiar imagen' : 'Elegir imagen'}
+                        <input
+                          type="file"
+                          accept=".jpg,.jpeg,.png"
+                          onChange={handleImageChange}
+                          className="hidden"
+                        />
+                      </label>
+                      <p className="text-[10px] text-[#b4c8b9]/35 mt-2">JPG, JPEG o PNG. Se guardará como imagen principal del parque.</p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
               {formError && (

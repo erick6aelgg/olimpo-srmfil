@@ -18,9 +18,7 @@ export const Layout = () => {
    * Retorna directamente el <Outlet />, permitiendo que la vista administrativa se despliegue 
    * en pantalla completa limpia sin heredar el Navbar ni el Footer convencionales.
    */
-  if (user?.tipo_usuario === "admin") {
-    return <Outlet />;
-  }
+
 
   return (
     /**
