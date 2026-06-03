@@ -3,6 +3,7 @@ import { FaFacebook, FaInstagram, FaTwitter } from "react-icons/fa";
 import { MdMail } from "react-icons/md";
 import { Link } from "react-router-dom";
 import Logo from "../assets/img/Logo.png";
+import Olimpo from "../assets/img/Olimpo.png";
 
 /**
  * Componente Footer.
@@ -32,7 +33,8 @@ export const Footer = () => {
           <div className="col-span-1 md:col-span-2">
             {/* Identidad de la Marca */}
             <div className="flex items-center gap-2 mb-4">
-              <img src={Logo} alt="Logo Olimpo" className="h-10 md:h-14 w-auto"/>
+              <img src={Olimpo} alt="Logo Olimpo" className="h-10 md:h-14 w-auto"/>
+              <img src={Logo} alt="Logo" className="h-10 md:h-14 w-auto"/>
               <div className="flex flex-col">
                 <span className="font-semibold text-white text-sm leading-tight">
                   Festival Internacional
