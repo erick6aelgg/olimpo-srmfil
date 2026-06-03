@@ -161,6 +161,13 @@ export default function Parques() {
   }, [])
 
   useEffect(() => {
+  if (location.state?.parqueId && parques.length > 0) {
+    const parque = parques.find(p => p.id === location.state.parqueId)
+    if (parque) selectPark(parque)
+  }
+}, [parques, location.state])
+
+  useEffect(() => {
     if (location.hash === '#reservar-form') {
       const t = setTimeout(() => {
         document.getElementById('reservar-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
