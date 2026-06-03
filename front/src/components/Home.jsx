@@ -357,7 +357,7 @@ export const Home = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-400/20 bg-yellow-400/8 text-yellow-300 text-xs uppercase tracking-[0.3em] mb-6">
               <Star className="w-3.5 h-3.5 fill-yellow-300" />
-              Más recomendados
+              Selección del editor
             </div>
 
             <h2 className="text-4xl md:text-6xl font-black leading-none tracking-tight mb-4">
@@ -481,7 +481,7 @@ export const Home = () => {
               <div className="mt-auto pt-3 border-t border-yellow-400/10 flex items-center justify-end">
                 <Button
                   size="sm"
-                  onClick={() => navigate("/parques")}
+                  onClick={() => navigate("/parques", { state: { parqueId: p.id } })}
                   className="btn-fancy text-black cursor-pointer"
                 >
                   Ver más detalles

@@ -53,13 +53,13 @@ export const Footer = () => {
             
             {/* Botonera de Redes Sociales con efectos de transición en hover */}
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center hover:bg-yellow-500/20 transition-colors">
+              <a href="#" className="w-10 h-10 rounded-full bg-yellow-500/5 flex items-center justify-center cursor-not-allowed opacity-50 grayscale">
                 <FaFacebook className="w-5 h-5 text-yellow-500" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center hover:bg-yellow-500/20 transition-colors">
+              <a href="#" className="w-10 h-10 rounded-full bg-yellow-500/5 flex items-center justify-center cursor-not-allowed opacity-50 grayscale">
                 <FaInstagram className="w-5 h-5 text-yellow-500" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center hover:bg-yellow-500/20 transition-colors">
+              <a href="#" className="w-10 h-10 rounded-full bg-yellow-500/5 flex items-center justify-center cursor-not-allowed opacity-50 grayscale">
                 <FaTwitter className="w-5 h-5 text-yellow-500" />
               </a>
               <a href="mailto:srmfilbyolimpo@gmail.com" className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center hover:bg-yellow-500/20 transition-colors">
@@ -85,7 +85,7 @@ export const Footer = () => {
               </li>
               {/* Se usan etiquetas <a> tradicionales para enlaces ancla internos o secciones pendientes */}
               <li>
-                <a href="#" className="text-gray-500 hover:text-yellow-500 text-sm transition-colors">
+                <a href="#" className="text-gray-500 cursor-not-allowed text-sm transition-colors grayscale">
                   Acerca de
                 </a>
               </li>
@@ -102,22 +102,24 @@ export const Footer = () => {
             <h3 className="text-white/60 font-semibold mb-4 leading-relaxed">Información</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-500 hover:text-yellow-500 text-sm transition-colors">
+                <a href="#" 
+                  className="text-gray-500/40 cursor-not-allowed text-sm transition-colors grayscale">
                   Preguntas Frecuentes
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-500 hover:text-yellow-500 text-sm transition-colors">
+                <a href="#" 
+                className="text-gray-500/40 cursor-not-allowed text-sm transition-colors grayscale">
                   Términos y Condiciones
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-500 hover:text-yellow-500 text-sm transition-colors">
+                <a href="#" className="text-gray-500/40 cursor-not-allowed text-sm transition-colors grayscale">
                   Política de Privacidad
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-500 hover:text-yellow-500 text-sm transition-colors">
+                <a href="#" className="text-gray-500/40 cursor-not-allowed text-sm transition-colors grayscale">
                   Consejos para Visitantes
                 </a>
               </li>
