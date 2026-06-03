@@ -7,11 +7,13 @@ Rutas para la aplicación de parques:
 - DELETE /parks/{id}/delete: Eliminar parque (solo admin).
 - POST /parks/{id}/services: Agregar servicio a parque (solo admin).
 - DELETE /parks/{id}/services/{service_id}: Eliminar servicio de parque (solo admin).
-- POST /parks/{id}images/: Asociar una imagen a un parque
+- GET /parks/{id}/images/: Listar todas las imágenes de un parque.
+- POST /parks/{id}/images/add/: Agregar imágen a parque (solo admin).
+- DELETE /parks/{id}/images/{imagen_id}/: Eliminar una imagen de la BD.
 """
 
 from django.urls import path
-from .views import ParqueCreateView, ParqueListView, ParqueDetailView, ParqueUpdateView, ParqueDeleteView, AddServicioToParqueView, RemoveServicioFromParqueView, ImagenParqueCreateView
+from .views import ParqueCreateView, ParqueListView, ParqueDetailView, ParqueUpdateView, ParqueDeleteView, AddServicioToParqueView, RemoveServicioFromParqueView, ImagenParqueCreateView, RemoveImagenFromParqueView, ImagenParqueGetView
 
 app_name = "parks"
 
@@ -23,5 +25,8 @@ urlpatterns = [
     path('<int:id>/delete/', ParqueDeleteView.as_view(), name='delete'),
     path('<int:id>/services/', AddServicioToParqueView.as_view(), name='add-service'),
     path('<int:id>/services/<int:service_id>/', RemoveServicioFromParqueView.as_view(), name='remove-service'),
-    path('<int:id>/images/', ImagenParqueCreateView.as_view(), name='add-image'),
+    path('<int:id>/images/', ImagenParqueGetView.as_view(),    name='parque-imagen-list'),
+    path('<int:id>/images/add/', ImagenParqueCreateView.as_view(), name='add-image'),
+    path('<int:id>/images/<int:imagen_id>/', RemoveImagenFromParqueView.as_view(), name='parque-imagen-delete'),
+
 ]

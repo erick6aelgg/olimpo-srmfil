@@ -1,50 +1,41 @@
-import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useMemo } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import { Button } from '../components/Button'
 import {
-  MapPin,
-  Users,
-  Clock,
-  Home,
-  Leaf,
-  Sparkles,
-  Eye,
-  Calendar,
-  AlertTriangle,
-  X
+  MapPin, Users, Clock, Home, Leaf, Sparkles, Calendar,
+  AlertTriangle, X, Lock, LogIn, CalendarCheck, Tent,
+  ArrowRight, Star, ChevronLeft, ChevronRight, Utensils,
+  Map as MapIcon,  
+  SlidersHorizontal,
+  CheckCheck, Wifi, Toilet, Car, FerrisWheel,Siren  
 } from 'lucide-react'
+import { FiArrowRight } from 'react-icons/fi'
+import { motion, AnimatePresence } from 'framer-motion'
 
+/* ─── helpers ──────────────────────────────────────────────── */
 const fireflyIcon = (active = false) =>
   L.divIcon({
     className: '',
     html: `
-      <div
-        style="
-          width: 18px;
-          height: 18px;
-          border-radius: 9999px;
-          background: ${active ? '#fde047' : '#facc15'};
-          box-shadow:
-            0 0 10px #fde047,
-            0 0 20px #fde047,
-            0 0 35px #fde047;
-          border: 2px solid white;
-          animation: pulse 1.5s infinite;
-        "
-      ></div>
-
+      <div style="
+        width:18px;height:18px;border-radius:9999px;
+        background:${active ? '#fde047' : '#facc15'};
+        box-shadow:0 0 10px #fde047,0 0 20px #fde047,0 0 35px #fde047;
+        border:2px solid white;
+        animation:ffpulse 1.5s infinite;
+      "></div>
       <style>
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 0.8; }
-          50% { transform: scale(1.25); opacity: 1; }
-          100% { transform: scale(1); opacity: 0.8; }
+        @keyframes ffpulse{
+          0%{transform:scale(1);opacity:.8}
+          50%{transform:scale(1.25);opacity:1}
+          100%{transform:scale(1);opacity:.8}
         }
-      </style>
-    `,
+      </style>`,
     iconSize: [18, 18],
     iconAnchor: [9, 9],
   })
@@ -65,24 +56,80 @@ const fmt = (t) => {
 }
 
 const today = () => new Date().toISOString().split('T')[0]
-const isTuesday = (dateStr) => new Date(dateStr + 'T12:00:00').getDay() === 2
-
-const isInSeason = (dateStr) => {
-  const d = new Date(dateStr + 'T12:00:00')  
-  const m = d.getMonth() + 1
-  return m >= 6 && m <= 8
+const isTuesday = (d) => new Date(d + 'T12:00:00').getDay() === 2
+const isInSeason = (d) => {
+  const month = new Date(d + 'T12:00:00').getMonth() + 1
+  return month >= 6 && month <= 8
 }
 
+const fallback =
+  'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
+
+/* ─── carrusel ──────────────────────────────────────────────── */
+function ImageCarousel({ images = [], alt }) {
+  const urls = images.length > 0 ? images.map(i => i.url) : [fallback]
+  const [idx, setIdx] = useState(0)
+  const prev = (e) => { e.stopPropagation(); setIdx((i) => (i - 1 + urls.length) % urls.length) }
+  const next = (e) => { e.stopPropagation(); setIdx((i) => (i + 1) % urls.length) }
+
+  return (
+    <div className="relative h-56 overflow-hidden rounded-t-2xl group">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={idx}
+          src={urls[idx]}
+          alt={alt}
+          onError={(e) => { e.target.src = fallback }}
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full h-full object-cover"
+        />
+      </AnimatePresence>
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0d1f14]/80 via-transparent to-transparent pointer-events-none" />
+      {images.length > 1 && (
+        <>
+          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 border border-white/10 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 cursor-pointer">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 border border-white/10 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 cursor-pointer">
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {urls.map((_, i) => (
+              <button key={i} onClick={(e) => { e.stopPropagation(); setIdx(i) }}
+                className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${i === idx ? 'bg-yellow-400 w-3' : 'bg-white/40'}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+const servicioIcons = {
+  1: Wifi,
+  2: Toilet ,
+  3: Car,
+  4: FerrisWheel ,
+  5: Siren ,
+  6: Utensils ,
+}
+
+/* ─── componente principal ──────────────────────────────────── */
 export default function Parques() {
-  const { user, logout } = useAuth()
+  /* TODOS los hooks al inicio, orden fijo, sin condicionales */
+  const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
   const [parques, setParques] = useState([])
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
   const [panelOpen, setPanelOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef(null)
-
+  const [serviciosFiltro, setServiciosFiltro] = useState([])
   const [form, setForm] = useState({
     parque_id: '',
     fecha_inicio: '',
@@ -94,6 +141,18 @@ export default function Parques() {
   const [formSuccess, setFormSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  /* ── Extraer servicios únicos de los parques (sin endpoint extra) ── */
+  const servicios = useMemo(() => {
+    const map = new Map()
+    parques.forEach((p) => {
+      (p.servicios ?? []).forEach((s) => {
+        if (!map.has(s.id)) map.set(s.id, s)
+      })
+    })
+    return Array.from(map.values()).sort((a, b) => a.id - b.id)
+  }, [parques])
+
+  /* ── efectos ── */
   useEffect(() => {
     api.get('/api/parks/')
       .then(({ data }) => setParques(Array.isArray(data) ? data : data.results || []))
@@ -102,15 +161,20 @@ export default function Parques() {
   }, [])
 
   useEffect(() => {
-    const h = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [])
+    if (location.hash === '#reservar-form') {
+      const t = setTimeout(() => {
+        document.getElementById('reservar-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+      return () => clearTimeout(t)
+    }
+  }, [location])
 
+  /* ── lógica ── */
   const selectPark = (p) => {
+    if (!user) { navigate('/login'); return }
     setSelected(p)
     setPanelOpen(true)
-    setForm(f => ({ ...f, parque_id: String(p.id), tipo_visita: p.tiene_cabanas ? 'cabana' : 'camping' }))
+    setForm((f) => ({ ...f, parque_id: String(p.id), tipo_visita: p.tiene_cabanas ? 'cabana' : 'camping' }))
   }
 
   const closePanel = () => {
@@ -120,9 +184,14 @@ export default function Parques() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target
-    setForm(f => ({ ...f, [name]: value }))
+    setForm((f) => ({ ...f, [name]: value }))
     setFormError('')
   }
+
+  const toggleServicio = (id) =>
+    setServiciosFiltro((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    )
 
   const validateForm = () => {
     if (!form.parque_id) return 'Selecciona un parque.'
@@ -135,11 +204,10 @@ export default function Parques() {
     if (new Date(form.fecha_fin) <= new Date(form.fecha_inicio))
       return 'La fecha de fin debe ser posterior a la de inicio.'
     if (form.num_personas < 1) return 'Mínimo 1 persona.'
-    const parque = parques.find(p => String(p.id) === String(form.parque_id))
+    const parque = parques.find((p) => String(p.id) === String(form.parque_id))
     if (parque && form.num_personas > parque.capacidad_maxima)
       return `Capacidad máxima de este parque: ${parque.capacidad_maxima} personas.`
-    const parqueSeleccionado = parques.find(p => String(p.id) === String(form.parque_id))
-    if (form.tipo_visita === 'cabana' && parqueSeleccionado && !parqueSeleccionado.tiene_cabanas)
+    if (form.tipo_visita === 'cabana' && parque && !parque.tiene_cabanas)
       return 'Este parque no tiene cabañas disponibles.'
     return null
   }
@@ -175,410 +243,489 @@ export default function Parques() {
     }
   }
 
-  const activeParques = parques.filter(p => p.estatus_parque === 'activo')
+  const activeParques = parques
+    .filter((p) => p.estatus_parque === 'activo')
+    .filter((p) => {
+      if (serviciosFiltro.length === 0) return true
+      const ids = p.servicios?.map((s) => s.id) || []
+      return serviciosFiltro.some((id) => ids.includes(id))
+    })
+
   const center = activeParques.length
     ? [parseFloat(activeParques[0].latitud), parseFloat(activeParques[0].longitud)]
     : [19.066, -98.76]
 
-  const parqueForm = parques.find(p => String(p.id) === String(form.parque_id))
+  const parqueForm = parques.find((p) => String(p.id) === String(form.parque_id))
 
-  // Función manejadora para cuando una imagen por ID de parque no se encuentra
-  const handleImageError = (e) => {
-    e.target.onerror = null; 
-    e.target.src = "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80"; // Imagen de respaldo limpia
-  }
-
+  /* ─── render ──────────────────────────────────────────────── */
   return (
     <div className="min-h-screen bg-[#071510] text-[#f0ead6]">
-  
-      {/* MAPA */}
-      <section className="max-w-7xl mx-auto px-6 py-1">
-  
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <h2 className="text-3xl font-bold flex items-center gap-2">
-            <MapPin className="text-yellow-400 w-8 h-8" /> Mapa interactivo
-          </h2>
-  
-          <span className="px-4 py-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-sm">
-            {activeParques.length} parques activos
-          </span>
-        </div>
-  
-        <div className="h-[500px] overflow-hidden rounded-3xl border border-yellow-500/20 shadow-2xl z-0">
-          {!loading ? (
-            <MapContainer center={center} zoom={11} className="h-full w-full z-0">
-              <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                attribution='&copy; CARTO'
-              />
-  
-              {selected && (
-                <FlyTo coords={[parseFloat(selected.latitud), parseFloat(selected.longitud)]} />
+
+      {/* ── MAPA ── */}
+      <section className="relative py-16 px-6 overflow-hidden">
+        <div className="relative max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-[1fr_1.2fr] gap-12 items-center">
+
+            <motion.div
+              initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }} viewport={{ once: true }}
+              className="space-y-8 text-center lg:text-left flex flex-col items-center lg:items-start"
+            >
+              <div>
+                <h2 className="text-5xl md:text-6xl xl:text-7xl font-black leading-none tracking-tight">
+                  <span className="block text-white">Explora los</span>
+                  <span className="block bg-gradient-to-r from-yellow-300 via-yellow-400 to-green-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(250,204,21,0.35)]">
+                    parques
+                  </span>
+                </h2>
+                <p className="mt-6 text-lg text-zinc-300 max-w-md leading-relaxed mx-auto lg:mx-0">
+                  Descubre cada ubicación del Festival Internacional de las Luciérnagas y encuentra el destino perfecto para tu próxima aventura.
+                </p>
+              </div>
+              <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl border border-green-500/20 bg-green-500/10 text-green-300">
+                <Leaf className="w-5 h-5" />
+                <span className="font-medium">{activeParques.length} parques activos esta temporada</span>
+              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 text-yellow-300 text-xs uppercase tracking-[0.3em]">
+                <MapIcon className="w-4 h-4" /> Mapa interactivo
+              </div>
+              <p className="text-sm text-white/90 flex gap-2 justify-center lg:justify-start">
+                <span className="w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_12px_#fde047] mt-0.5 shrink-0" />
+                Los puntos amarillos indican parques activos
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }} viewport={{ once: true }}
+              className="aspect-square overflow-hidden rounded-[32px] border border-yellow-400/20 shadow-[0_0_60px_rgba(250,204,21,0.12)]"
+            >
+              {!loading ? (
+                <MapContainer center={center} zoom={11} className="h-full w-full z-0">
+                  <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="&copy; CARTO" />
+                  {selected && <FlyTo coords={[parseFloat(selected.latitud), parseFloat(selected.longitud)]} />}
+                  {activeParques.map((p) => (
+                    <Marker key={p.id}
+                      position={[parseFloat(p.latitud), parseFloat(p.longitud)]}
+                      icon={fireflyIcon(selected?.id === p.id)}
+                      eventHandlers={{ click: () => selectPark(p) }}
+                    />
+                  ))}
+                </MapContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center bg-[#0d2418]">
+                  <p className="text-zinc-500">Cargando mapa...</p>
+                </div>
               )}
-  
-              {activeParques.map((p) => (
-                <Marker
-                  key={p.id}
-                  position={[parseFloat(p.latitud), parseFloat(p.longitud)]}
-                  icon={fireflyIcon(selected?.id === p.id)}
-                  eventHandlers={{ click: () => selectPark(p) }}
-                />
-              ))}
-            </MapContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center">
-              <p className="text-zinc-400">Cargando parques...</p>
-            </div>
-          )}
+            </motion.div>
+          </div>
         </div>
       </section>
-          
-      {/* OVERLAY */}
+
+      {/* ── OVERLAY ── */}
       <div
         onClick={closePanel}
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] transition-all duration-300 ${
-          panelOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
-        }`}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] transition-all duration-300 ${panelOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
       />
 
-      {/* PANEL DETALLES */}
-      <aside
-        className={`fixed top-0 right-0 h-full w-full sm:w-[440px] bg-[#08120d] border-l border-yellow-500/20 z-[1000] overflow-y-auto transition-transform duration-300 ${
-          panelOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
+      {/* ── PANEL DETALLES ── */}
+      <aside className={`fixed top-0 right-0 h-full w-full sm:w-[440px] bg-[#08120d] border-l border-yellow-500/20 z-[1000] overflow-y-auto transition-transform duration-300 ${panelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         {selected && (
           <>
-            {/* IMAGEN DE PANEL POR ID */}
             <div className="relative h-72 overflow-hidden">
-              <img
-                src={`/images/parks/${selected.id}.jpg`}
-                alt={selected.nombre}
-                onError={handleImageError}
-                className="w-full h-full object-cover"
-              />
-
+              <AnimatePresence mode="wait">
+                <motion.img key={selected.id}
+                  src={selected.imagenes?.find(i => i.es_principal)?.url ?? fallback}
+                  alt={selected.nombre}
+                  onError={(e) => { e.target.src = fallback }}
+                  initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }} className="w-full h-full object-cover"
+                />
+              </AnimatePresence>
               <div className="absolute inset-0 bg-gradient-to-t from-[#08120d] to-transparent" />
-
-              <button
-                onClick={closePanel}
-                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 border border-white/10 text-white hover:bg-black/70 flex items-center justify-center transition"
-              >
-                <X className="w-5 h-5" />
+              <button onClick={closePanel} className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/50 border border-white/10 text-white hover:bg-black/70 flex items-center justify-center transition cursor-pointer">
+                <X className="w-4 h-4" />
               </button>
             </div>
-
-            {/* CONTENIDO */}
             <div className="p-6">
-
-              {/* TAGS */}
-              <div className="flex flex-wrap gap-2 mb-5">
-                <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs">
-                  <Leaf className="w-3 h-3" /> Activo
-                </span>
-
-                {selected.tiene_cabanas && (
-                  <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs">
-                    <Home className="w-3 h-3" /> Cabañas
-                  </span>
-                )}
-
-                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-300 text-xs">
-                  ⛺ Camping
-                </span>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs"><Leaf className="w-3 h-3" /> Activo</span>
+                {selected.tiene_cabanas && <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs"><Home className="w-3 h-3" /> Cabañas</span>}
+                <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-300 text-xs"><Tent className="w-3 h-3" /> Camping</span>
               </div>
-
-              {/* TITULO */}
-              <h2 className="text-3xl font-bold mb-3">
-                {selected.nombre}
-              </h2>
-
+              <h2 className="text-2xl font-medium mb-2">{selected.nombre}</h2>
               <p className="text-zinc-400 mb-6 flex items-center gap-1 text-sm">
                 <MapPin className="w-4 h-4 text-yellow-500/60" /> {selected.direccion}
               </p>
-
-              {/* INFO */}
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                  <p className="text-xs text-zinc-500 mb-1 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Apertura
-                  </p>
-                  <p className="font-semibold">{fmt(selected.hora_apertura)}</p>
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {[
+                  { icon: <Clock className="w-3 h-3" />, label: 'Apertura', val: fmt(selected.hora_apertura) },
+                  { icon: <Clock className="w-3 h-3" />, label: 'Cierre', val: fmt(selected.hora_cierre) },
+                  { icon: <Users className="w-3 h-3" />, label: 'Capacidad', val: `${selected.capacidad_maxima} personas` },
+                  { icon: <Calendar className="w-3 h-3" />, label: 'Temporada', val: 'Jun – Ago 2026' },
+                ].map(({ icon, label, val }) => (
+                  <div key={label} className="bg-white/5 border border-white/8 rounded-xl p-3">
+                    <p className="text-xs text-zinc-500 mb-1 flex items-center gap-1">{icon} {label}</p>
+                    <p className="text-sm font-medium">{val}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2 mb-6">
+                <div className={`rounded-xl border p-3 flex items-center gap-3 ${selected.tiene_cabanas ? 'border-yellow-500/20 bg-yellow-500/8' : 'border-white/8 bg-white/3'}`}>
+                  <Home className="w-4 h-4 text-yellow-400/60 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">Cabañas</p>
+                    <p className="text-xs text-zinc-500">{selected.tiene_cabanas ? 'Disponibles' : 'No disponibles'}</p>
+                  </div>
                 </div>
-
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                  <p className="text-xs text-zinc-500 mb-1 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Cierre
-                  </p>
-                  <p className="font-semibold">{fmt(selected.hora_cierre)}</p>
-                </div>
-
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                  <p className="text-xs text-zinc-500 mb-1 flex items-center gap-1">
-                    <Users className="w-3 h-3" /> Capacidad
-                  </p>
-                  <p className="font-semibold">{selected.capacidad_maxima} personas</p>
-                </div>
-
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                  <p className="text-xs text-zinc-500 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" /> Temporada
-                  </p>
-                  <p className="font-semibold">Jun – Ago 2026</p>
+                <div className="rounded-xl border border-green-500/20 bg-green-500/8 p-3 flex items-center gap-3">
+                  <Tent className="w-4 h-4 text-green-400/60 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">Camping</p>
+                    <p className="text-xs text-zinc-500">Siempre disponible</p>
+                  </div>
                 </div>
               </div>
-
-              {/* SERVICIOS */}
               {selected.servicios?.length > 0 && (
-                <div className="mb-8">
-                  <p className="text-sm text-zinc-400 mb-3">Servicios</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selected.servicios.map((s, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 text-sm"
-                      >
-                        {s.nombre || s}
-                      </span>
-                    ))}
+                <div className="mb-6">
+                  <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">Servicios disponibles</p>
+                  <div className="space-y-2">
+{selected.servicios.map((s) => {
+  const ServicioIcon = servicioIcons[s.id];
+
+  if (!ServicioIcon) {
+    return (
+      <div key={s.id} className="bg-white/5 border border-yellow-500/10 rounded-xl p-3">
+        <h4 className="text-sm font-medium text-yellow-300">{s.nombre}</h4>
+        <p className="text-xs text-zinc-400">{s.descripcion}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div key={s.id} className="bg-white/5 border border-yellow-500/10 rounded-xl p-3">
+      <div className="flex items-center gap-2 mb-1">
+        <ServicioIcon className="w-3.5 h-3.5 text-yellow-400" />
+        <h4 className="text-sm font-medium text-yellow-300">{s.nombre}</h4>
+      </div>
+      <p className="text-xs text-zinc-400 leading-relaxed">{s.descripcion}</p>
+    </div>
+  );
+})}
                   </div>
                 </div>
               )}
-
-              {/* HOSPEDAJE */}
-              <div className="space-y-3 mb-8">
-                <div className={`rounded-2xl border p-4 flex items-center justify-between ${
-                  selected.tiene_cabanas ? 'border-yellow-500/20 bg-yellow-500/10' : 'border-white/10 bg-white/5'
-                }`}>
-                  <div>
-                    <p className="font-semibold flex items-center gap-1">
-                      <Home className="w-4 h-4" /> Cabañas
-                    </p>
-                    <p className="text-sm text-zinc-400">
-                      {selected.tiene_cabanas ? 'Disponible' : 'No disponible'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-green-500/20 bg-green-500/10 p-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold flex items-center gap-1">
-                      <Leaf className="w-4 h-4" /> Camping
-                    </p>
-                    <p className="text-sm text-zinc-400">Siempre disponible</p>
-                  </div>
-                </div>
+              <div className="bg-red-500/8 border border-red-500/15 rounded-xl p-3 mb-6 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
+                <span className="text-xs text-red-300">Sin reservaciones los martes · Solo junio a agosto</span>
               </div>
-
-              {/* NOTA */}
-              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 mb-8 text-sm text-red-300 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>No hay reservaciones los martes · Disponible solo de junio a agosto</span>
-              </div>
-
-              {/* BOTON */}
               <button
-                onClick={() => {
-                  closePanel()
-                  setTimeout(() => {
-                    document.getElementById('reservar-form')?.scrollIntoView({ behavior: 'smooth' })
-                  }, 300)
-                }}
-                className="w-full py-4 rounded-2xl bg-yellow-400 text-black font-bold hover:bg-yellow-300 flex items-center justify-center gap-2 transition"
+                onClick={() => { closePanel(); setTimeout(() => document.getElementById('reservar-form')?.scrollIntoView({ behavior: 'smooth' }), 300) }}
+                className="w-full py-3.5 rounded-xl bg-yellow-400 text-black font-medium hover:bg-yellow-300 flex items-center justify-center gap-2 transition text-sm cursor-pointer active:scale-[0.99]"
               >
-                <Sparkles className="w-5 h-5" /> Reservar este parque
+                <Sparkles className="w-4 h-4" /> Reservar este parque
               </button>
             </div>
           </>
         )}
-      </aside>   
+      </aside>
 
-      {/* TARJETAS */}
-      <section className="max-w-7xl mx-auto px-6 pb-10">
-  
-        <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
-          <Leaf className="text-green-400 w-8 h-8" /> Todos los parques
-        </h2>
-  
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-  
-          {activeParques.map((p) => (
-            <div
-              key={p.id}
-              className={`overflow-hidden rounded-3xl border transition-all duration-300 bg-[#0d2418] flex flex-col justify-between ${
-                selected?.id === p.id
-                  ? 'border-yellow-400 shadow-yellow-500/20 shadow-2xl'
-                  : 'border-yellow-500/10 hover:border-yellow-400/40'
-              }`}
-            >
-  
-              {/* IMAGEN DE LA TARJETA POR ID */}
-              <div className="h-52 overflow-hidden relative">
-                <img
-                  src={`/images/parks/${p.id}.jpg`}
-                  alt={p.nombre}
-                  onError={handleImageError}
-                  className="w-full h-full object-cover hover:scale-105 transition duration-500"
-                />
-  
-                <span className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/60 text-yellow-400 text-xs border border-yellow-500/20">
-                  {p.tiene_cabanas ? 'Cabañas + Camping' : 'Camping'}
-                </span>
-              </div>
-  
-              <div className="p-5 flex-1 flex flex-col justify-between">
+      {/* ── TARJETAS ── */}
+      <section className="py-20 px-6 bg-gradient-to-b from-[#173d2a] via-[#0b1d15] to-[#050b08]">
+        <div className="max-w-7xl mx-auto">
+
+          {/* ── FILTROS ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6 }}
+            className="mb-10"
+          >
+            {/* cabecera */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
+                  <SlidersHorizontal className="w-4 h-4 text-yellow-400" />
+                </div>
                 <div>
-                  <h3 className="text-2xl font-semibold mb-2">{p.nombre}</h3>
-    
-                  <p className="text-zinc-400 text-sm mb-1 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-zinc-500" /> {p.direccion}
+                  <p className="text-sm font-medium text-white">Filtrar por servicios</p>
+                  <p className="text-xs text-zinc-500">
+                    {serviciosFiltro.length === 0
+                      ? `${activeParques.length} parques disponibles`
+                      : `${serviciosFiltro.length} filtro${serviciosFiltro.length > 1 ? 's' : ''} activo${serviciosFiltro.length > 1 ? 's' : ''} · ${activeParques.length} resultado${activeParques.length !== 1 ? 's' : ''}`}
                   </p>
-    
-                  <p className="text-zinc-400 text-sm mb-4 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-zinc-500" /> {fmt(p.hora_apertura)} – {fmt(p.hora_cierre)}
-                  </p>
-                </div>
-  
-                <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                  <span className="text-sm text-zinc-400 flex items-center gap-1">
-                    <Users className="w-4 h-4 text-zinc-500" /> {p.capacidad_maxima} personas
-                  </span>
-  
-                  {/* BOTÓN DE DETALLES */}
-                  <button
-                    onClick={() => selectPark(p)}
-                    className="flex items-center gap-1 text-sm font-semibold bg-yellow-400 text-black px-4 py-2 rounded-xl hover:bg-yellow-300 active:scale-95 transition-all"
-                  >
-                    <Eye className="w-4 h-4" /> Ver detalles
-                  </button>
                 </div>
               </div>
+
+              <AnimatePresence>
+                {serviciosFiltro.length > 0 && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }} transition={{ duration: 0.2 }}
+                    onClick={() => setServiciosFiltro([])}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-500/20 bg-red-500/8 text-red-400 text-xs hover:bg-red-500/15 hover:border-red-500/30 transition-all cursor-pointer"
+                  >
+                    <X className="w-3 h-3" /> Limpiar filtros
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </div>
-          ))}
+
+            {/* chips — se muestran desde los datos de parques, sin endpoint extra */}
+            {loading ? (
+              <div className="flex flex-wrap gap-2">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-9 rounded-full bg-white/5 border border-white/8 animate-pulse" style={{ width: `${72 + i * 16}px` }} />
+                ))}
+              </div>
+            ) : servicios.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {servicios.map((s, i) => {
+                  const Icon = servicioIcons[s.id] || Sparkles
+                  const active = serviciosFiltro.includes(s.id)
+                  return (
+                    <motion.button
+                      key={s.id}
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05, duration: 0.28 }}
+                      onClick={() => toggleServicio(s.id)}
+                      className={`
+                        flex items-center gap-2 px-4 py-2 rounded-full text-sm border
+                        transition-all duration-200 cursor-pointer select-none
+                        ${active
+                          ? 'bg-yellow-400/15 border-yellow-400/50 text-yellow-300 shadow-[0_0_14px_rgba(250,204,21,0.10)]'
+                          : 'bg-white/4 border-white/10 text-zinc-400 hover:border-yellow-400/30 hover:text-zinc-200 hover:bg-white/8'
+                        }
+                      `}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-200 ${active ? 'bg-yellow-400 shadow-[0_0_6px_#fde047]' : 'bg-zinc-600'}`} />
+                      <Icon className="w-3.5 h-3.5 text-yellow-400" />
+                      {s.nombre}
+                      <AnimatePresence>
+                        {active && (
+                          <motion.span
+                            initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}
+                          >
+                            <CheckCheck className="w-3.5 h-3.5 text-yellow-400" />
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
+                  )
+                })}
+              </div>
+            ) : null}
+
+            <div className="mt-6 h-px bg-gradient-to-r from-transparent via-yellow-400/15 to-transparent" />
+          </motion.div>
+
+          {/* encabezado */}
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
+            <h2 className="text-4xl md:text-5xl font-light text-white mb-3 tracking-tight">Todos los parques</h2>
+            <p className="text-zinc-300 text-base max-w-lg mx-auto">Explora nuestros santuarios de luciérnagas y elige el que más te inspire</p>
+          </motion.div>
+
+          {/* grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence mode="popLayout">
+              {activeParques.map((p, index) => (
+                <motion.div key={p.id} layout
+                  initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }} transition={{ delay: index * 0.06, duration: 0.35 }}
+                  className="group"
+                >
+                  <div className={`overflow-hidden rounded-2xl border bg-gradient-to-b from-[#183425] to-[#0b1510] flex flex-col transition-all duration-300 h-full ${selected?.id === p.id ? 'border-yellow-300 shadow-[0_0_30px_rgba(250,204,21,0.18)]' : 'border-yellow-400/20 hover:border-yellow-300'}`}>
+                    <div className="relative">
+                      <ImageCarousel images={p.imagenes} alt={p.nombre} />
+                      
+                      <div className="absolute top-3 right-3 z-10">
+                        <span className="px-2.5 py-1 rounded-full bg-black/60 border border-yellow-400/20 text-yellow-300 text-xs">
+                          {p.tiene_cabanas ? 'Cabañas + Camping' : 'Camping'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-5 flex flex-col flex-1">
+                      <h3 className="text-lg font-medium text-white mb-1 group-hover:text-yellow-300 transition-colors">{p.nombre}</h3>
+                      <div className="flex items-center gap-1 text-zinc-300 text-sm mb-2">
+                        <MapPin className="w-3.5 h-3.5 text-yellow-400/70" /><span>{p.direccion}</span>
+                      </div>
+                      {p.descripcion && <p className="text-zinc-200 text-sm mb-3 line-clamp-2 leading-relaxed">{p.descripcion}</p>}
+                      <div className="flex items-center gap-1 text-zinc-300 text-xs mb-3">
+                        <Clock className="w-3.5 h-3.5 text-yellow-400/70" />
+                        <span>{fmt(p.hora_apertura)} – {fmt(p.hora_cierre)}</span>
+                      </div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex items-center gap-1 text-zinc-200 text-xs">
+                          <Users className="w-3.5 h-3.5 text-yellow-400/70" /><span>{p.capacidad_maxima} personas</span>
+                        </div>
+                        <div className="w-px h-3.5 bg-white/10" />
+                        {p.tiene_cabanas && <div className="flex items-center gap-1 text-yellow-300 text-xs"><Home className="w-3.5 h-3.5" /><span>Cabañas</span></div>}
+                        <div className="flex items-center gap-1 text-green-300 text-xs"><Tent className="w-3.5 h-3.5" /><span>Camping</span></div>
+                      </div>
+
+                      {/* chips de servicios de la tarjeta — resaltados si están en el filtro */}
+                      {p.servicios?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-4">
+                          {p.servicios.slice(0, 3).map((s) => (
+                            <span key={s.id}
+                              className={`px-2 py-0.5 rounded-full text-[11px] border transition-colors ${serviciosFiltro.includes(s.id) ? 'bg-yellow-400/15 border-yellow-400/40 text-yellow-300' : 'bg-white/5 border-white/10 text-zinc-400'}`}
+                            >{s.nombre}</span>
+                          ))}
+                          {p.servicios.length > 3 && (
+                            <span className="px-2 py-0.5 rounded-full text-[11px] bg-white/5 border border-white/10 text-zinc-500">+{p.servicios.length - 3}</span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-auto pt-3 border-t border-yellow-400/10 flex items-center justify-end">
+                        
+                        <Button size="sm" onClick={() => selectPark(p)} className="btn-fancy text-black cursor-pointer">
+                          Ver más detalles <FiArrowRight className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* sin resultados */}
+          <AnimatePresence>
+            {!loading && activeParques.length === 0 && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-center py-20">
+                <div className="w-16 h-16 rounded-2xl bg-yellow-400/8 border border-yellow-400/15 flex items-center justify-center mx-auto mb-4">
+                  <SlidersHorizontal className="w-7 h-7 text-yellow-400/40" />
+                </div>
+                <p className="text-zinc-400 text-sm mb-2">
+                  {serviciosFiltro.length > 0 ? 'Ningún parque coincide con los servicios seleccionados.' : 'No hay parques activos por el momento.'}
+                </p>
+                {serviciosFiltro.length > 0 && (
+                  <button onClick={() => setServiciosFiltro([])} className="mt-2 text-xs text-yellow-400 underline underline-offset-2 cursor-pointer">
+                    Limpiar filtros
+                  </button>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </section>
-  
-      {/* FORMULARIO */}
+
+      {/* ── FORMULARIO ── */}
       <section id="reservar-form" className="border-t border-yellow-500/10 bg-[#050e08]">
-  
-        <div className="max-w-4xl mx-auto px-6 py-16">
-  
-          <div className="text-center mb-10">
-            <h2 className="text-4xl font-bold mb-4 flex items-center justify-center gap-2">
-              <Sparkles className="text-yellow-400 w-8 h-8" /> Hacer una reservación
+        <div className="max-w-2xl mx-auto px-6 py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-light mb-2 flex items-center justify-center gap-3 text-[#f0ead6] tracking-tight">
+              <Sparkles className="text-yellow-400 w-5 h-5" /> Hacer una reservación
             </h2>
-            <p className="text-zinc-400">Solo disponible de junio a agosto</p>
+            <p className="text-xs text-zinc-500 uppercase tracking-widest">Solo disponible de junio a agosto</p>
           </div>
-  
-          {formSuccess ? (
-            <div className="bg-green-500/10 border border-green-500/20 rounded-3xl p-10 text-center">
-              <h3 className="text-3xl font-bold mb-4 text-yellow-400">¡Reservación realizada!</h3>
-              <p className="text-zinc-300 mb-6">Se envió una confirmación a {user?.email}</p>
-  
-              <div className="flex gap-4 justify-center flex-wrap">
-                <button
-                  onClick={() => setFormSuccess(false)}
-                  className="px-6 py-3 rounded-xl bg-yellow-400 text-black font-semibold hover:bg-yellow-300 transition"
-                >
-                  Hacer otra reservación
-                </button>
-  
-                <Link
-                  to="/reservar"
-                  className="px-6 py-3 rounded-xl border border-yellow-500/20 hover:border-yellow-400 transition"
-                >
+
+          {!user ? (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+              className="bg-[#0a1a10] border border-yellow-500/10 rounded-2xl p-12 text-center"
+            >
+              <div className="w-14 h-14 rounded-full bg-yellow-400/8 border border-yellow-500/20 flex items-center justify-center mx-auto mb-5">
+                <Lock className="w-6 h-6 text-yellow-400/60" />
+              </div>
+              <h3 className="text-xl font-medium text-[#f0ead6] mb-3">Inicia sesión para reservar</h3>
+              <p className="text-sm text-zinc-500 mb-8 leading-relaxed">Para hacer una reservación necesitas una cuenta.<br />Es rápido y gratis.</p>
+              <button onClick={() => navigate('/login')}
+                className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-medium text-sm px-7 py-3 rounded-xl transition-colors duration-150 cursor-pointer active:scale-[0.98]"
+              >
+                <LogIn className="w-4 h-4" /> Iniciar sesión
+              </button>
+            </motion.div>
+
+          ) : formSuccess ? (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-[#0a1a10] border border-yellow-500/10 rounded-2xl p-10 text-center"
+            >
+              <h3 className="text-2xl font-medium mb-3 text-yellow-400">¡Reservación realizada!</h3>
+              <p className="text-zinc-400 text-sm mb-8">Se envió una confirmación a {user?.email}</p>
+              <div className="flex gap-3 justify-center flex-wrap">
+                <button onClick={() => setFormSuccess(false)}
+                  className="px-6 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-medium text-sm transition-colors cursor-pointer active:scale-[0.98]"
+                >Hacer otra reservación</button>
+                <Link to="/reservar" className="px-6 py-3 rounded-xl border border-yellow-500/20 hover:border-yellow-400/50 text-[#f0ead6] text-sm transition-colors">
                   Ver mis reservaciones
                 </Link>
               </div>
-            </div>
+            </motion.div>
+
           ) : (
-            <form onSubmit={handleReservar} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  
-              <div className="md:col-span-2">
-                <label className="block mb-2 text-sm text-zinc-400">Parque</label>
-                <select
-                  name="parque_id"
-                  value={form.parque_id}
-                  onChange={handleFormChange}
-                  className="w-full bg-[#0d2418] border border-yellow-500/20 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-400 text-[#f0ead6]"
-                >
-                  <option value="" className="bg-[#050e08]">— Selecciona un parque —</option>
-                  {activeParques.map((p) => (
-                    <option key={p.id} value={p.id} className="bg-[#050e08]">
-                      {p.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-  
-              <div>
-                <label className="block mb-2 text-sm text-zinc-400">Fecha inicio</label>
-                <input
-                  type="date"
-                  name="fecha_inicio"
-                  value={form.fecha_inicio}
-                  min={today()}
-                  onChange={handleFormChange}
-                  className="w-full bg-white/5 border border-yellow-500/20 rounded-xl px-4 py-3 text-zinc-200 focus:outline-none focus:border-yellow-400"
-                />
-              </div>
-  
-              <div>
-                <label className="block mb-2 text-sm text-zinc-400">Fecha fin</label>
-                <input
-                  type="date"
-                  name="fecha_fin"
-                  value={form.fecha_fin}
-                  min={form.fecha_inicio || today()}
-                  onChange={handleFormChange}
-                  className="w-full bg-white/5 border border-yellow-500/20 rounded-xl px-4 py-3 text-zinc-200 focus:outline-none focus:border-yellow-400"
-                />
-              </div>
-  
-              <div>
-                <label className="block mb-2 text-sm text-zinc-400">Personas</label>
-                <input
-                  type="number"
-                  name="num_personas"
-                  value={form.num_personas}
-                  min="1"
-                  onChange={handleFormChange}
-                  className="w-full bg-white/5 border border-yellow-500/20 rounded-xl px-4 py-3 text-zinc-200 focus:outline-none focus:border-yellow-400"
-                />
-              </div>
-  
-              <div>
-                <label className="block mb-2 text-sm text-zinc-400">Tipo</label>
-                <select
-                  name="tipo_visita"
-                  value={form.tipo_visita}
-                  onChange={handleFormChange}
-                  className="w-full bg-[#0d2418] border border-yellow-500/20 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-400 text-[#f0ead6]"
-                >
-                  {parqueForm?.tiene_cabanas && (
-                    <option value="cabana" className="bg-[#050e08]">Cabaña</option>
-                  )}
-                  <option value="camping" className="bg-[#050e08]">Camping</option>
-                </select>
-              </div>
-  
-              {formError && (
-                <div className="md:col-span-2 bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-300 flex items-start gap-2 text-sm">
-                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{formError}</span>
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+              className="bg-[#0a1a10] border border-yellow-500/10 rounded-2xl p-8"
+            >
+              <form onSubmit={handleReservar} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="md:col-span-2">
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2">
+                    <MapPin className="w-3.5 h-3.5 text-yellow-400/50" /> Parque
+                  </label>
+                  <select name="parque_id" value={form.parque_id} onChange={handleFormChange}
+                    className="w-full bg-[#081310] border border-yellow-500/15 hover:border-yellow-500/30 focus:border-yellow-400/50 rounded-xl px-4 py-3 text-[#f0ead6] text-sm outline-none transition-colors duration-150 appearance-none cursor-pointer"
+                  >
+                    <option value="" className="bg-[#050e08]">— Selecciona un parque —</option>
+                    {activeParques.map((p) => <option key={p.id} value={p.id} className="bg-[#050e08]">{p.nombre}</option>)}
+                  </select>
                 </div>
-              )}
-  
-              <div className="md:col-span-2 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-8 py-4 rounded-2xl bg-yellow-400 text-black font-bold hover:bg-yellow-300 flex items-center gap-2 transition"
-                >
-                  {submitting ? 'Reservando...' : 'Confirmar reservación'}
-                </button>
-              </div>
-            </form>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2">
+                    <Calendar className="w-3.5 h-3.5 text-yellow-400/50" /> Fecha inicio
+                  </label>
+                  <input type="date" name="fecha_inicio" value={form.fecha_inicio} min={today()} onChange={handleFormChange}
+                    className="w-full bg-[#081310] border border-yellow-500/15 hover:border-yellow-500/30 focus:border-yellow-400/50 rounded-xl px-4 py-3 text-zinc-200 text-sm outline-none transition-colors duration-150 cursor-pointer"
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2">
+                    <CalendarCheck className="w-3.5 h-3.5 text-yellow-400/50" /> Fecha fin
+                  </label>
+                  <input type="date" name="fecha_fin" value={form.fecha_fin} min={form.fecha_inicio || today()} onChange={handleFormChange}
+                    className="w-full bg-[#081310] border border-yellow-500/15 hover:border-yellow-500/30 focus:border-yellow-400/50 rounded-xl px-4 py-3 text-zinc-200 text-sm outline-none transition-colors duration-150 cursor-pointer"
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2">
+                    <Users className="w-3.5 h-3.5 text-yellow-400/50" /> Personas
+                  </label>
+                  <input type="number" name="num_personas" value={form.num_personas} min="1" onChange={handleFormChange}
+                    className="w-full bg-[#081310] border border-yellow-500/15 hover:border-yellow-500/30 focus:border-yellow-400/50 rounded-xl px-4 py-3 text-zinc-200 text-sm outline-none transition-colors duration-150"
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2">
+                    <Tent className="w-3.5 h-3.5 text-yellow-400/50" /> Tipo de visita
+                  </label>
+                  <select name="tipo_visita" value={form.tipo_visita} onChange={handleFormChange}
+                    className="w-full bg-[#081310] border border-yellow-500/15 hover:border-yellow-500/30 focus:border-yellow-400/50 rounded-xl px-4 py-3 text-[#f0ead6] text-sm outline-none transition-colors duration-150 appearance-none cursor-pointer"
+                  >
+                    {parqueForm?.tiene_cabanas && <option value="cabana" className="bg-[#050e08]">Cabaña</option>}
+                    <option value="camping" className="bg-[#050e08]">Camping</option>
+                  </select>
+                </div>
+
+                {formError && (
+                  <div className="md:col-span-2 bg-red-500/8 border border-red-500/15 rounded-xl p-4 text-red-300 flex items-start gap-2 text-sm">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" /><span>{formError}</span>
+                  </div>
+                )}
+
+                <div className="md:col-span-2 mt-2">
+                  <button type="submit" disabled={submitting}
+                    className="w-full flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-black font-medium py-4 rounded-xl text-sm transition-colors duration-150 cursor-pointer active:scale-[0.99]"
+                  >
+                    {submitting ? 'Reservando...' : 'Confirmar reservación'}
+                    {!submitting && <ArrowRight className="w-4 h-4" />}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           )}
         </div>
       </section>

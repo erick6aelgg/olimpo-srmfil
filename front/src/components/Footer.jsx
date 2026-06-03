@@ -3,6 +3,7 @@ import { FaFacebook, FaInstagram, FaTwitter } from "react-icons/fa";
 import { MdMail } from "react-icons/md";
 import { Link } from "react-router-dom";
 import Logo from "../assets/img/Logo.png";
+import Olimpo from "../assets/img/Olimpo.png";
 
 /**
  * Componente Footer.
@@ -20,14 +21,20 @@ export const Footer = () => {
       {/* Contenedor con límites de ancho máximo y alineación centrada */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
-  
+       { /**
+         * REJILLA RESPONSIVA (GRID)
+         * - grid-cols-1: Una columna por defecto en pantallas móviles.
+         * - md:grid-cols-4: Se transforma en 4 columnas a partir de pantallas medianas (tabletas/monitores).
+         * - gap-8: Separación uniforme entre las columnas de la rejilla.
+         */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
 
           {/* COLUMNA 1 Y 2: LOGO, DESCRIPCIÓN Y REDES SOCIALES */}
           <div className="col-span-1 md:col-span-2">
             {/* Identidad de la Marca */}
             <div className="flex items-center gap-2 mb-4">
-              <img src={Logo} alt="Logo Olimpo" className="h-10 md:h-14 w-auto"/>
+              <img src={Olimpo} alt="Logo Olimpo" className="h-10 md:h-14 w-auto"/>
+              <img src={Logo} alt="Logo" className="h-10 md:h-14 w-auto"/>
               <div className="flex flex-col">
                 <span className="font-semibold text-white text-sm leading-tight">
                   Festival Internacional
@@ -40,7 +47,7 @@ export const Footer = () => {
             
             {/* Reseña introductoria del evento */}
             <p className="text-white/70 text-sm mb-4 max-w-md leading-relaxed">
-              Descubre la magia de las luciérnagas en los bosques de Tlaxcala. Una experiencia
+              Descubre la magia de las luciérnagas en los bosques de México. Una experiencia
               nocturna única que conecta con la naturaleza y preserva el ecosistema.
             </p>
             
